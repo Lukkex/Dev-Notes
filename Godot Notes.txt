@@ -1,0 +1,441 @@
+=== General UI ===
+
+- Clicking on Preview tickbox, you can see what the Camera sees without running the game
+
+- Inspector tab for a MeshInstance3D, you can change if it casts shadows or not
+
+- Can alter materials for a mesh right in the Inspector
+
+- Metallic is how much of its own color light a material reflects
+
+- Specular is how glossy it is
+
+- Roughness is how rough a surface is and how much light it absorbs
+
+
+=== Project Manager ===
+
+CTRL + N: New Project
+
+CTRL + I: Import Project
+
+CTRL + S: Scan for projects
+
+CTRL + E: Edit Project
+
+CTRL + R: Run Project
+
+F2: Rename Project
+
+DEL: Remove Project
+
+
+=== 3D Editor ===
+
+Q: Select Mode (Default)
+
+W: Move Mode
+
+E: Rotate Mode
+
+R: Scale Mode
+
+T: Use Local Space
+
+Y: Use Snap
+
+~~~~~~~~
+(Orthographic view keybinds are the same as for Blender)
+
+Num 7: Top View
+
+Alt + Num 7: Bottom View
+
+Num 1: Front View
+
+Alt + Num 1: Back View
+
+Num 3: Right View
+
+Alt + Num 3: Left View
+
+Num 5: Switch perspective/orthographic view
+~~~~~~~~
+
+O: Focus onto Origin of world
+
+F: Focus onto selection
+
+CTRL + ALT + M: Align Transform w/ View
+
+CTRL + ALT + F: Align Rotation w/ View
+
+CTRL + 1: 1 Viewport
+
+....
+
+CTRL + 4: 4 Viewports
+
+
+=== Animation ===
+
+INS: Insert Keyframe
+
+CTRL + INS: Insert Keyframe (Existing tracks)
+
+SHIFT + K: Clear Pose
+
+
+=== Input Mapping ===
+
+Go to Project -> Project Settings -> Input Map
+
+Click "Show Built-in Actions"
+
+Here, you can add your own custom inputs, rename other ones, add joystick axes under the manual selection, etc.
+
+To create 4 different movement direction inputs (WASD) and a jump, do the following:
+
+In Input Map tab, type in "move_left" in box that says Add New Action, then click "+ Add"
+
+Set the deadzone to 0.5 but this is based on your game
+
+To bind a button or key, click the "+" on the right of the Action
+
+Now, you can just press A on your keyboard and it'll automatically select A, then click OK to add
+-- Do the same for the Left arrow key
+
+To add support for GamePad, click "+" again and go under the Joypad Axes folder
+-- Select Joypad Axis 0 - (Left Stick Left) and click OK
+
+Now, repeat this for the other 3 WASD movement direction inputs
+
+Lastly, for jump; create the action named jump, then you will want to add the Space bar and Joypad Button 0
+(Bottom Action) found under the Joypad Buttons folder
+
+Now, you can swap out ui_accept for jump, and ui_left for move_left and etc. in your scripts
+
+=== Physics ===
+
+### move_and_slide() ###
+
+Sliding is a common collision response; imagine a player moving along walls in a top-down game or running up and 
+down slopes in a platformer. While it's possible to code this response yourself after using move_and_collide(), 
+move_and_slide() provides a convenient way to implement sliding movement without writing much code.
+
+move_and_slide() automatically includes the timestep in its calculation, so you should not multiply the velocity vector by delta. 
+This does not apply to gravity as it is an acceleration and is time dependent, and needs to be scaled by delta.
+
+
+### move_toward() ###
+
+Moving an object using move_toward
+You can use move_toward(target, delta) directly on a Vector2 or Vector3 to move a vector to the same values as another vector. 
+This can be useful if you want to move a value to a specific target at a fixed speed. 
+For float values you can just call move_toward(a,b,t) without calling it on a vector.
+
+EXAMPLE:
+# Moves to Vector(0,0) at a speed of 1 unit per second
+var speed = 1 # Change this to increase it to more units/second
+position = position.move_toward(Vector2(0,0), delta * speed)
+
+
+=== LegionGames FPS Tutorial Steps ===
+
+
+VIDEO 1: Character Controller
+
+First they make a 3D Scene and rename it "World"
+
+They save the scene, put it into a new folder in their project directory called Scenes
+
+Then, they make a child node of type CSGBox3D, which is a simple mesh combined with a collision shape that's good for prototyping
+--Make sure to toggle "Use Collisions" for this on the right under the Inspector
+
+Our Character is going to use a node called a CharacterBody3D (Parent of the World node, but not the CSGBox)
+
+Now, add a MeshInstance3D as a child to the Character node
+-- On the right side for the Mesh dropdown box towards the top, select New Capsule Mesh
+
+Now, we're going to create a collision shape from the mesh
+-- At the top (with the Mesh selected on the left hierarchy) next to where it says transform and view, left click on the Mesh tab
+-- Click Create Collision Shape
+-- Leave placement as Sibling, but change shape type to Simplified Convex
+
+Now, if you were to turn off visibility for the mesh, you can see the collision shape has way less vertices than original mesh
+-- This is good for performance!
+
+On the left, right click on the CharacterBody3D and Attach Script
+
+Rename this to Player.gd
+
+Character bodies get a default code template that have movements and jumps already! :3
+(I don't in my version of Godot so here's the code for it I re-wrote):
+
+```````````````````````````````````````````````````````````````````````````
+# This script works well for first person and third person 3D games
+extends CharacterBody3D
+
+# Constants; will not be changed
+const SPEED = 5.0
+const JUMP_VELOCITY = 4.5
+
+# Can change values of vars
+# Get the gravity from the project settings to be synced withj RigidBody nodes.
+var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
+
+
+func _physics_process(delta):
+	# Add the gravity.
+	if not is_on_floor():
+		velocity.y -= gravity * delta
+	
+	# Handle Jump.
+	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
+		velocity.y = JUMP_VELOCITY
+	
+	# Get the input direction and handle the movement/deceleration.
+	# As good practice, you should replace UI actions with custom gameplay actions!
+	# AKA, replace ui_left with strafe_left for example
+	var input_dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	
+	if direction:
+		velocity.x = direction.x * SPEED
+		velocity.z = direction.z * SPEED
+	else: 
+		velocity.x = move_toward(velocity.x, 0, SPEED)
+		velocity.z = move_toward(velocity.z, 0, SPEED)
+		
+	move_and_slide()
+
+```````````````````````````````````````````````````````````````````````````
+
+In order for lighting to work properly, go back to the 3D viewer, click on the 3 vertical dots at the top to the
+left of transform and view, then click Add Environment to Scene
+
+Go to the tab again and now click Add Sun to Scene
+
+Now you will have a WorldEnvironment and a DirectionalLight
+
+After lighting is setup, right click on the Character node and add a Node3D and Camera3D both as child nodes
+
+Rename this Node3D to "Head," and move the Camera3D node onto the Head node so it becomes a child node of it
+
+Now, back in the script for the character, we see the physics is set to the default physics setting which is 9.8
+
+You can remove the stuff after the equals sign and just replace it with 9.8 or 9.81
+
+When we press space, we set the velocity to go upwards, and every tick we lower it by gravity if we're not on the floor
+-- Velocity is in the negatives
+
+move_and_slide() in our script moves the character based on the velocity vector described previously
+-- it also CHANGES the velocity depending on IF a collision occurred (if you hit the floor, velocity set to 0 for example)
+
+And since it's 0 and we're on the floor, it doesn't change anymore due to the "if not is_on_floor()"
+
+
+The "if direction" section of the code will set it to the direction we pressed IF we pressed a button
+-- else, the default is to set the velocity to 0, essentially; the intention here was to add friction, but it doesn't
+-- work as intended w/ code above since it sets to 0; you could just replace the stuff after the = with 0.0 and get same effect
+
+
+We now will work on making the camera move with the cursor.
+
+Add the following code in order to REMOVE the cursor from the screen (no longer visible)
+```````````````````````````````````````````````````````````````````````````
+func _ready():
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+```````````````````````````````````````````````````````````````````````````
+The _ready() function runs at the start of the program, and this will make the cursor invisible
+
+Now we'll define variables for the Head and the Camera so we can easily access them in the code
+
+!!! References to node must be stored in @onready variables !!!
+
+If you want to get the path to them in the code, you can simply drag them from the left into the spot in the script you want it at
+
+```````````````````````````````````````````````````````````````````````````
+@onready var head = $Head
+@onready var camera = $Head/Camera3D
+
+```````````````````````````````````````````````````````````````````````````
+
+Now, to handle the rotation of the camera we'll do the following
+
+We will add the _unhandled_input(event) function, which is called anytime the player does ANYTHING, e.g. press a button, move mouse
+
+Since we are specifically looking for mouse motion, we'll check for that
+
+If it's a mouse movement, we'll rotate the head depending on the value the mouse moved times the sensitivity
+
+To avoid the dreaded GIMBAL LOCK 😱😱😱 we will rotate the Y on the head and the X for the camera to keep them separate
+(Global yaw, local pitch)
+
+```````````````````````````````````````````````````````````````````````````
+const SENSITIVITY = 0.03
+
+func _unhandled_input(event):
+	if event is InputEventMouseMotion:
+		head.rotate_y(-event.relative.x * SENSITIVITY)
+		camera.rotate_x(-event.relative.y * SENSITIVITY)
+
+```````````````````````````````````````````````````````````````````````````
+
+Now we can look around, but the Sensitivity will probably need some tweaks (too high) and we need to clamp the camera
+rotation so we can't just do cartwheels with it
+
+```````````````````````````````````````````````````````````````````````````
+func _unhandled_input(event):
+	if event is InputEventMouseMotion:
+		head.rotate_y(-event.relative.x * SENSITIVITY)
+		camera.rotate_x(-event.relative.y * SENSITIVITY)
+		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-40), deg_to_rad(60))
+
+```````````````````````````````````````````````````````````````````````````
+
+Now, you can go ahead and create a map to play around in with collision and diff colored boxes if you'd like
+
+Movement now isn't necessary in the direction we're facing, so we will fix that now
+
+In the code, we had transform.basis which was where the body was facing, but now we will change it to head.transform.basis
+so it's where the head is facing
+
+Now, we can also add a head bob effect when the character walks using a Sine wave
+
+We'll need to add some variables and constants, including bob frequency (how often footsteps happen), 
+bob_amplitude (how far up/down we bob), and lastly as a non-constant, we'll add a var to hold how far along in the sine wave we are
+
+```````````````````````````````````````````````````````````````````````````
+# Increment t_bob every physics process / tick
+	# Delta is how much time has elapsed since last tick
+	# Multiplied by the speed of our character, aka head bob more often the faster they go
+	# Lastly, make sure only head bobbing when the character is on the ground/floor
+	# Will also set local position of camera to result of the head bob function (changes only y val)
+	t_bob += delta * velocity.length() * float(is_on_floor())
+	camera.transform.origin = _headbob(t_bob)
+
+func _headbob(time) -> Vector3:
+	var pos = Vector3.ZERO
+	# Instead of going -1 to 1 like normal sine, now goes from -BOB_AMP to BOB_AMP
+	pos.y = sin(time * BOB_FREQ) * BOB_AMP
+	return pos
+
+```````````````````````````````````````````````````````````````````````````
+
+Head bob effect looks nice, but if we want to take into account the horizontal movement too (our head moves left/right
+when walking), let's do the following
+
+```````````````````````````````````````````````````````````````````````````
+func _headbob(time) -> Vector3:
+	var pos = Vector3.ZERO
+	# Instead of going -1 to 1 like normal sine, now goes from -BOB_AMP to BOB_AMP
+	pos.y = sin(time * BOB_FREQ) * BOB_AMP
+	pos.x = cos(time * BOB_FREQ/2) * BOB_AMP
+	return pos
+
+```````````````````````````````````````````````````````````````````````````
+
+Now, let's add sprinting
+
+Since the speed will be changing depending on if we're holding SHIFT or not, it will have to be a variable instead of a const
+
+
+```````````````````````````````````````````````````````````````````````````
+# Sprinting & Speed
+const WALK_SPEED = 5.0
+const SPRINT_SPEED = 8.0
+var speed
+
+...
+
+# (After Handle Jump section)
+# Handle Sprint.
+if Input.is_action_pressed("sprint"):
+	speed = SPRINT_SPEED
+else:
+	speed = WALK_SPEED
+	
+```````````````````````````````````````````````````````````````````````````
+
+Issue now where if we let go of movement in air we stop instantly; let's add inertia!
+
+We can attain this by simply making it so the player can only change the velocity whilst on the ground
+
+Otherwise, interpolate the velocity linearly
+
+```````````````````````````````````````````````````````````````````````````
+if is_on_floor():
+	if direction:
+		velocity.x = direction.x * speed
+		velocity.z = direction.z * speed
+	else: 
+		velocity.x = 0.0
+		velocity.z = 0.0
+else:
+	# Interpolate, aka change speed incrementally
+	# Takes 3 variables: Initial velocity, target velocity, then the decimal percentage
+	# of distance between init and target velocities we want to cover on each step
+	# Percentage amt changes how much control the player has in the air, essentially
+	velocity.x = lerp(velocity.x, direction.x * speed, delta * 3.0)
+	velocity.z = lerp(velocity.z, direction.z * speed, delta * 3.0)
+
+```````````````````````````````````````````````````````````````````````````
+
+Finally, we can fix the original friction code to work as intended
+
+```````````````````````````````````````````````````````````````````````````
+if is_on_floor():
+	if direction:
+		velocity.x = direction.x * speed
+		velocity.z = direction.z * speed
+	else: 
+		velocity.x = lerp(velocity.x, direction.x * speed, delta * 7.0)
+		velocity.z = lerp(velocity.z, direction.z * speed, delta * 7.0)
+
+```````````````````````````````````````````````````````````````````````````
+
+Finally, we can add a couple of constants to allow us to change the Camera FOV
+
+
+You can set the base FOV constant to a variable if the player is allowed to change it in the game
+You can do the same too for FOV change as well
+
+We'll set the target FOV based on the speed, but we want to clamp the velocity so it doesn't go TOO crazy (if player goes super fast)
+--Can especially happen when player is falling and falling super fast
+
+Finally, we can interpolate linearly the camera FOV from current to the target FOV
+
+```````````````````````````````````````````````````````````````````````````
+# Field of View
+const BASE_FOV = 75.0
+const FOV_CHANGE = 1.5
+
+# FOV
+# Clamps the velocity
+# Min of 0.5, maximum is SPRINT_SPEED times 2
+var velocity_clamped = clamp(velocity.length(), 0.5, SPRINT_SPEED * 2)
+var target_fov = BASE_FOV + FOV_CHANGE * velocity_clamped
+camera.fov = lerp(camera.fov, target_fov, delta * 8.0)
+
+```````````````````````````````````````````````````````````````````````````
+
+
+
+VIDEO 2: Creating Game Level
+
+For the CSGBox3D floor node, create a new material on the right and drag in a texture
+
+Under the UV1 tab, enable Triplanar to allow for tiling
+
+For models, the GLTF/GLB format is the easiest to use
+
+Create a new folder called "Models"
+
+Right click on the model in the bottom left and click Create New Inherited Scene
+
+Right click on parent node and change the type to StaticBody3D
+
+For WorldEnvironment, you can click on it and go to the right, click on Environment and you can change a variety of settings
+to fine tune the appearance of your world

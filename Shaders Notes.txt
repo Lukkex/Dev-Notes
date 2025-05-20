@@ -1,0 +1,99 @@
+=== Shadertoy built-in ===
+
+"Shadertoy unofficial plugin" allows for easy color picking 
+
+iResolution = vec3(x, y, z) //Z is depth, only used for 3D textures
+
+
+=== GLSL built-in ===
+
+Swizzling, aka writing e.g. iResolution.xy is equivalent to creating a new vec2 and assigning it x, and y for the values
+-- You can do this in any order, e.g. iResolution.zy and it'll still put it in a new vec2 with z, and y
+-- Can even do stuff like iResolution.xyyzx
+
+Ton of math functions available to us, e.g. degrees, sin, cos, asin, tan, atan, pow, exp, log, sqrt, abs, sign, floor, fract, clamp, smoothstep, etc
+
+length() calculates the length of a vector from its end to the origin - if you center the origin, you can use to see how far from center
+
+
+=== General notes ===
+
+Fragcoord's range is dependent on the size of the canvas, e.g. if you have a monitor that is 1600 wide (fragcoord.x will go from 0 to this)
+and 900 pixels tall (fragcoord.y will range from 0 to 900)
+
+We want these coordinates in *clip space*, meaning they are not fixed for one specific canvas size, but can work for any and all
+
+We achieve this by making the x and y spaces range from -1 to 1
+
+``````````````````````````````````````````````````````
+vec2 uv = fragCoord / iResolution.xy; //uv holds transformed pixel coordinates
+
+fragColor = vec4(uv.x, 0.0, 0.0, 1.0); //Can see in red channel x values from 0 to 1 to the right
+// fragColor = vec4(uv.x, uv.y, 0.0, 1.0); //Goes from 0 to 1 for y now for the green values too, interpolates with red
+// Could also do it like ... = vec4(uv, 0.0, 1.0);
+
+``````````````````````````````````````````````````````
+
+Right now, it ranges from 0 to 1 on x and y with the center being 0.5, 0.5 - we want to change this to -1 and 1 so the center is 0, 0
+
+To do this, we can subtract 0.5 from both components of our uv vector
+
+``````````````````````````````````````````````````````
+uv = uv - 0.5;
+
+``````````````````````````````````````````````````````
+
+Now the space is centered, however, the edges range from -0.5 to 0.5, meaning we need to double it now
+
+``````````````````````````````````````````````````````
+uv = uv * 2.0;
+// Can condense into one line, aka vec2 uv = fragCoord / iResolution.xy * 2.0 - 1.0;
+
+``````````````````````````````````````````````````````
+
+Now, let's use the length function to see how far a vector is from our new centered origin 0, 0
+
+``````````````````````````````````````````````````````
+float d = length(uv);
+
+//fragColor = vec4(d, 0.0, 0.0, 1.0); //Can see visually how far from center it is
+
+``````````````````````````````````````````````````````
+
+If we changed the aspect ratio to not be a square with how our code is rn, our UV ranges from 0 to 1, so its stretched
+
+To fix this, we need to multiply the x component of our UVs by the current aspect of the canvas, aka its width divided by height
+
+``````````````````````````````````````````````````````
+uv.x *= iResolution.x / iResolution.y;
+
+// Can simplify single line again to vec2 uv = (fragCoord * 2.0 - iResolution.xy) / iResolution.y;
+
+``````````````````````````````````````````````````````
+
+Sine distance function found with our current circle visual; aka, distance is 0 right on the shape (0.5 out for our circle due to d -= 0.5)
+-- and goes out more the further away you get, or even inside the shape
+
+There are a ton of free to find distance functions out there online, or you can even make your own
+
+To show how the distance actually goes up inside the circle, do "d = abs(d);"
+
+If we want to make a sharp cutoff for our circle (e.g. 1 if it's far enough from the circle e.g. 0.5 away, 0 if close enough)
+-- we can use the step function, step(threshold, value) - will always return 0 if value is less than threshold, but 1 otherwise
+
+``````````````````````````````````````````````````````
+d = step(0.1, d);
+
+``````````````````````````````````````````````````````
+
+If you want a smoother step, we can use smoothstep - takes 3 parameters, smoothstep(firstthres, secondthres, value)
+-- 0 before first threshold, 1 after second threshold, and interpolates smoothly between the first and second threshold
+
+``````````````````````````````````````````````````````
+d = smoothstep(0.0, 0.1, d);
+
+``````````````````````````````````````````````````````
+
+Before the smooth step and before the abs(), we can also add d = sin(d), however from 0 to 1 it doesn't change much
+-- since the sine function basically still goes from 0 to 1 and not up and down, to change this and make it repeat more,
+-- we can increase the frequency

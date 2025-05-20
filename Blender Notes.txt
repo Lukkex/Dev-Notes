@@ -1,0 +1,261 @@
+=== General UI ===
+
+- Use numpad to rotate around an object, go to front view, side view; can set numbers on main part of keyboard
+to emulate numpad if you don't have a numpad
+
+- Can hold Ctrl and then press 1 on numpad to get the *back* view
+
+- Middle mouse click to rotate around, shift middle mouse to pan, scroll middle mouse to zoom
+
+- N when object selected: brings up transform tab
+
+- G when object selected: moves the object where ur mouse is, can hold X, Y, or Z with G to limit to that axis too
+
+- R: rotation mode 
+
+- S: scale mode
+
+- Alt Z for X-ray
+
+- Shift + D: Duplicate
+
+- R + Z + 90 to rotate 90 degrees around Z axis for example
+
+- Shift + A: Add menu
+
+- 3D cursor is anchor point looking thing, where things get placed by default in scene, and can use as point to rotate around
+
+- If need to reset cursor or other things, can bring up menu with Shift + S
+
+- After doing Shift + A to add an object, in the bottom right it'll show a menu where you can adjust properties of the object,
+for example you can lower the vertices count to get a more low poly look
+-- Changing to "Nothing" Fill Type will make the caps be empty
+
+- If you hold ctrl and select multiple objects in object mode and do Shift + J, you can join them together into a single object, all modifiers will also join,
+hence you can join a hand to a mirror arm object and then the hand will be mirrored too.
+
+- Press Z to bring up the render menu, you can then change it to be Render mode and it'll show your materials you've changed for the object
+-- Material Preview is a mix between Render Mode and Solid Mode
+
+- Numpad 0 allows you to go into active camera view, touble tap R to rotate the camera
+
+- Selecting things in the object hierarchy, you can press M on the keyboard to go and create new collection with those objects
+-- Can then untick the collection to turn them off, not deleted tho, but out of the way, good organization
+
+- Can do Ctrl + B, then drag a box over just ur camera view to limit that to what your computer renders to take off the load
+
+- Can adjust Max Sample amount under Render settings to be down to something like 80, because the default of 4096 will take ages to render
+
+- Can press N, then click lock camera to view, press 0 on numpad and camera will follow view
+
+- Ctrl + Alt + Numpad0
+
+- You can use the annotation tool to outline what you want to sculpt; hold in ctrl to delete
+
+- After using Ctrl + J to join meshes together, you can go to the modifier tab, and add remesh, which will remesh the object
+so there's nothing inside one another for example - Change voxel to like .03, then drop down and click apply
+
+
+=== Edit Mode ===
+
+- To adjust geometry of object, enter Edit Mode
+
+- Whatever you have selected previously in object mode (can be multiple objects), will be what you can edit when you go into edit mode
+
+- If you offcenter the object in Edit Mode, it doesn't change the origin point so when rotated in Obj Mode it'll be off
+
+- Can select points like icons on ur desktop too with a box
+
+- Can press Tab to go into Edit Mode
+
+- You can change select modes in Edit Mode to select faces instead of vertices for example
+
+- E is the shortcut to Extrude in Edit Mode, basically stretching out the face of an object
+
+- R you can use to rotate these faces as well
+
+- P: separates selected vertices in edit mode
+
+- S you can scale any edge, face, vertex
+
+- Ctrl + R when hovering over an edge to split the edge in half and make new edges / vertices
+
+- Shift + Alt then left click to select a "whole loop" of edges, or can hold shift and select multiple edges/faces/vertices you want to alter
+
+- Can select and delete half the vertices so you're only working on one side to mirror; can add mirror modifier in the modifier
+tab (the one with the wrench icon) and it will be applied to that object
+-- When using mirror mode, you can also use eye dropper under mirror object to change what object it's in reference to,
+aka the anchor point / centers around that object
+
+- With mirror modifier, if you move it apart it'll get cut in half, however if you check Clipping toggle then it'll fill the space between
+-- You don't need clipping when the 2 objects aren't meant to be touching (separate, like legs for example)
+
+- Can pres 7 on numpad to look at top view, Ctrl + R to split it in half again, then can move corner vertices inwards
+to make the object more spherical / other
+
+- X: brings up delete menu
+
+- Can continue to use E to extrude, Ctrl + R to split, S to scale / R to rotate / G to move (Combining with X, Y, or Z to limit to those axes if need be)
+
+- If you do Ctrl + R and click once an edge, you can then move the mouse to place where the split is.
+-- You can ALSO scroll on the mouse wheel to increase the number of edges you cut with Ctrl + R
+
+- If you do Alt + S instead of just S, it will scale based on the *normals*, the normals are basically the directions
+in which the faces point, whereas if you do normal scale it won't do it based on the directions they were facing but instead
+equal to all of them in reference to once another, essentially
+
+- Proportional Editing mode (The circle in the top middle) when enabled will "drag" other vertices around the point you're
+dragging based on the weight factor / other settings (scroll the mouse wheel to change the weight of the effect)
+
+- Can double tap R to rotate in more than just the axis you're viewing from (etc. in front / side ortho view)
+
+- Can do Shift + D on vertices too to duplicate them 
+
+- If you select a vertice and do Shift + L it'll select everything connected to that vertice that is "loose"
+
+- A: selects all the geometry of the object
+
+- Smooth tool is a useful tool found on the left, it has a purple sphere icon
+
+- Can double Tap A to deselect everything
+
+- Can press C, brings up select tool, you can adjust size with mouse wheel, and you can hold left click over things you want to select in edit mode
+-- Right click to get out of the select mode
+
+- Press P to bring up seperation menu, so you can make things you have selected to be a new object for example
+
+- If you select 3 separate vertices, and press F, it'll create a new face (a triangle) between those 3 points!
+
+- Solidify Modifier adds thickness to the mesh in realtime!
+
+- If the normals of the faces become flipped inside out at some part of the mesh, can do Alt + N to then 
+recalculate the normals to be corrected (outside / inside / etc)
+
+- Can select faces, then go into material menu and add new / select whatever material you want to use, and click "Assign"
+
+- Can do Ctrl + Numpad+ to grow the selection
+
+- Ctrl + B allows you to create a bevel on an edge when selected in Edit Mode
+-- Can scroll the mouse wheel to add in more segments
+
+- Ctrl + I to select everything but what you have currently selected
+
+- Ctrl + T to triangulate faces
+
+=== Sculpt Mode ===
+
+- Make sure to turn on Dynamic Topology (Dyntopo) before sculpting or else it'll just manipulate currently existing
+topology instead of adding new topology
+
+- Can enable symmetry right under dyntopo in settings for any axis
+
+- Relative Detail in Dyntopo means that the more zoomed in you are, the smaller the detail of the brush strokes
+
+- Holding in Ctrl when doing a brush stroke will invert the brush (erase)
+
+- Holding in Shift with any brush will make it the same as the Smooth brush, no need to go between the two
+
+- Hold F to adjust brush size, Hold Shift + F to adjust the brush strength
+
+- Do Ctrl + A -> Scale in case the brush in Sculpt mode is an oval
+
+- Can use grab tool in front ortho mode to shape things like noses better than trying to place clay
+
+- You can right click objects in layout and do Shade Smooth to smooth it out
+
+
+=== PSX Look ===
+
+- PS1 used 16x16, 32x32, 64x64, and 128x128 texture sizes
+
+- Shading Tab is where you add textures
+
+- Turn specular to 0, and Roughness to 1 so no reflections
+
+- Change texture filtering to closest instead of linear
+
+- Go to UV editor and go into edit mode, be in face select mode
+
+- Select all faces, scale up in UV editor on the left so that it matches six of texture
+
+- Can also select *individual* faces and change shape in UV editor on left to be whatever you want
+
+- Crash was made not with texture images, but with vertex colors
+
+- Go to tab in bottom right of scene view, under color attributes, press new and press OK with defaults
+
+- Go to shading tab, add new material, add node called Color Attribute, plug Color to Surface
+then select the color option
+
+- Then go back into Layout tab and select in the mode tab in top left, Vertex Paint mode, then start painting object
+
+- PS1 would also fake shading with vertex colors
+
+- Can go back to shading tab, add new color, then add Color Attribute node, then a Mix node to mix with texture
+plug both to A and B and set blending mode to Multiply, output goes to Material output, set Factor to 1
+
+- Good for scene lighting, bc shading is normally disabled (ambient occlusion, bloom, screen space reflections, motion blur)
+all should be disabled at all times in scene settings
+
+- Vertex snapping/wobbling: VertexSnap_v1_2.py where PS1 didn't have decimal places for vertex placement so was off
+
+- Setup camera and use plugin to apply to entire camera view
+
+- Import add-on by going into preferences under Edit then install, then click the check mark, then press N in layout mode
+and go to the PSX Vertex Snap tab
+
+- Good size for grid is 200, but can go up to 406, then click add
+
+- Add grid into scene and drag it over all the objects you want to manipulate
+
+- Then click the object you want to manipulate and in the same add-on tab, click add modifier
+
+- To make vertices wobble with camera as you move it, select grid, then do Ctrl + A and All transforms so it's centered,
+then go to constraint tab on the right (Looks kinda like steam logo), then add damped track and set the target to the camera
+and finally set track axis to X.
+
+- Important settings: go into scene settings down to color management and set view transform to standard,
+then go to Film tab and set Filter size to 0.01px - this will remove a lot of antialiasing, aka sharp edges
+-- Then go into format tab (printer icon) and set FPS anywhere below 30, for stylized look 12 is a good option,
+for accuracy put between 24 and 30 (what they'd usually run at)
+
+- Compositing tab for pixelated low res effect: go into format tab, and you can legit type in like 1920/4 to divide by
+four (do for Y too) for the effect, or if you want to keep 1080p then go into compositing tab and add a Scale
+node, a Pixelate after the Scale, and another Scale after the pixelated node; set first scale to 0.250,
+and second scale for both values as well to 4.0
+
+- Final effects: Dithering (Can use AE in post or use https://blendermarket.com/products/dripspsxefx---lofi-playstation-1-effects)
+
+
+=== Animation === 
+
+- If you go to timeline, add markers, and select a camera, then do marker -> bind camera to markers, you can
+switch between cameras in the animation this way
+
+- Can right click objects and set origins to center of mass
+
+- Can highlight keyframes and do Shift + E, then set them to be cyclic and it'll LOOP the animation!
+
+- Shift + C to reset 3D Cursor
+
+- Ctrl + Alt + NP0 to lock camera to view
+
+
+=== Armatures === 
+
+- Ctrl + P: Parent selected bones, offset or connected - can deform with automatic weights (when not in edit mode)
+
+- Alt + P: Unparent bones
+
+- Ctrl + Tab to go into Pose Mode to test the bones
+
+- Select armature and object in object mode and then in the drop down menu in top left, you can select weight paint
+to adjust the weights for bones (whatever is more Red it'll have more effect on from that bone)
+
+- Select bones, can do Ctrl + F2 to batch rename, .L to suffix under set name for all bones on left side of body and then 
+can also do right click names -> auto name left/right, can also then right click and symmetrize selected bones
+
+
+=== Shading ===
+
+- Ctrl+ G after selecting nodes to make a node group
