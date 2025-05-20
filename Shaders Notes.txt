@@ -4,6 +4,7 @@
 
 iResolution = vec3(x, y, z) //Z is depth, only used for 3D textures
 
+iTime, an ever-increasing float representing the number of seconds passed since the beginning of running the shader
 
 === GLSL built-in ===
 
@@ -96,4 +97,190 @@ d = smoothstep(0.0, 0.1, d);
 
 Before the smooth step and before the abs(), we can also add d = sin(d), however from 0 to 1 it doesn't change much
 -- since the sine function basically still goes from 0 to 1 and not up and down, to change this and make it repeat more,
--- we can increase the frequency
+-- we can increase the frequency like sin(x * 8.0)
+
+``````````````````````````````````````````````````````
+d = sin(d*8.)/8.;
+
+// Can also make it offset by the time like d = sin(d*8. + iTime)/8.;
+
+``````````````````````````````````````````````````````
+
+Now, to achieve a more neon look, we will inverse d so the black rings are actually the white ones
+
+``````````````````````````````````````````````````````
+d = 1.0 / d;
+
+``````````````````````````````````````````````````````
+
+The screen now will be entirely white; this is because it has super high outputs for low inputs, and since we're in clip space
+-- it won't exceed 1, making all of them greater or equal to 1 for the output, aka white
+-- To fix this, we can scale down the inverse function like so; d = 0.1/d
+
+``````````````````````````````````````````````````````
+d = 0.02/d;
+
+``````````````````````````````````````````````````````
+
+Now we can see a glowy effect coming from the rings
+-- Now, let's introduce some more color
+
+Make a new vec3 col = vec3(1.0, 0.0, 0.0); aka red, and after you calculate d, multiply and set color to it
+
+``````````````````````````````````````````````````````
+col *= d;
+
+fragColor = vec4(col, 1.0);
+
+``````````````````````````````````````````````````````
+
+Our colors are actually not limited to the 0 to 1 range here! We can even change it up to 3.0 if we'd like to intesify the color!
+
+``````````````````````````````````````````````````````
+vec3 col = vec3(1.0, 2.0, 3.0);
+
+``````````````````````````````````````````````````````
+
+Now, to add even more variety to the color, we can add a palette function in
+
+``````````````````````````````````````````````````````
+vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d){
+	return a + b * cos(6.28318*(c*t+d));
+}
+
+``````````````````````````````````````````````````````
+
+Visit the website iquilezles.org/articles/palettes to allow you to create infinitely many different palettes using trig
+-- The 4 vec3 inputs are what indicate which palette of colors it'll be, which you can even make your own!
+-- Rainbow for example is a = {0.5, 0.5, 0.5}, b = {0.5, 0.5, 0.5}, c = {1.0, 1.0, 1.0}, d = {0.0, 0.33, 0.67}
+
+To create your own, visit the website dev.thi.ng/gradients, allowing you to visually create your own palette and understand how the function works
+
+After you decide on a palette, you can actually directly change the function to remove the parameters and hard-code in your palette
+
+``````````````````````````````````````````````````````
+vec3 palette(float t){
+	vec3 a = vec3(0.5, 0.5, 0.5);
+//.......do same for b, c
+	vec3 d = ....
+
+	return a ....same as before
+}
+
+vec3 col = palette(d);
+
+``````````````````````````````````````````````````````
+
+You can now also add a time offset for the t value you pass in for palette (add it to d), palette(d + iTime)
+
+To do spatial repetition, we can use the fract() function for this
+
+The fract function simply returns the fractional part of its input, aka the numbers after the decimal point
+-- from 0.0 to 1.0
+
+uv = fract(uv);
+fragColor = vec4(uv, 0.0, 1.0);
+
+You'll notice however we have 4 versions of our original-looking UV space, meaning we need to recenter each one now 
+-- similar to how we did it before
+
+To resolve it, scale the UVs first then subtracting 0.5 to center them
+
+``````````````````````````````````````````````````````
+uv *= 2.0;
+uv = fract(uv);
+uv -= 0.5;
+
+...
+
+fragColor = vec4(col, 1.0);
+
+// Shortened into one line it'd be uv = fract(uv * 2.0) - 0.5;
+``````````````````````````````````````````````````````
+
+Now, d represents the center to the origin of each repetition; however, if we keep track of the original d
+-- for the distance to the origin of the entire canvas, we can do even more cool effects
+
+Create a new uv0 variable and assign its value to uv right after the first calculation for uv, but before all the altering ones
+
+``````````````````````````````````````````````````````
+vec2 uv0 = uv;
+
+``````````````````````````````````````````````````````
+
+We now can get a trippy color effect by replacing d as the palette parameter we're passing in with the length of uv0
+
+``````````````````````````````````````````````````````
+vec3 col = palette(lenth(uv0) + iTime);
+
+``````````````````````````````````````````````````````
+
+The key to getting fractal appearances is **iterations**, aka recursion of sorts
+
+In order to do this, we will have to encapsulate our entire color calculation code into a loop (for loop here)
+
+``````````````````````````````````````````````````````
+vec2 uv = (fragCoord * 2.0 - iResolution.xy) / iResolution.y;
+vec2 uv0 = uv;
+vec3 finalColor = vec3(0.0);
+
+for (float i = 0.0; i < 3.0; i++){
+	uv = fract(uv * 2.0) - 0.5;
+
+	float d = length(uv);
+
+	vec3 col = palette(length(uv0) + iTime*0.4);
+
+	d = sin(d*8. + iTime)/8.;
+	d = abs(d);
+
+	d = 0.02/d;
+
+	finalColor += color * d;
+}
+
+fragColor = vec4(finalColor, 1.0);
+
+``````````````````````````````````````````````````````
+
+The iterations might line up too well, and so to introduce more visual interest we can change the 2.0 in the fract
+-- function to something like 1.5 (or any other decimal number)
+
+To increase variations further, we can use the exponential function
+
+``````````````````````````````````````````````````````
+float d = length(uv) * exp(-length(uv0));
+
+``````````````````````````````````````````````````````
+
+To visualize how this works, visit the website graphtoy.com
+
+exp(-x) acts similarly to the function of 1/x, but doesn't go to infinity at 0; multiplying x by this gives a smooth
+-- curve similar to our original x linear function
+
+You can reduce the falloff for the inverse function alongside this to balance the effect even more
+
+We can even include i as part of our calculations to make it even more diverse per iteration
+
+Let's pass in i to the palette function
+
+``````````````````````````````````````````````````````
+vec3 col = palette(length(uv0) + i*.4 + iTime*.4);
+
+``````````````````````````````````````````````````````
+
+Lastly, to enhance the overall contrast of the image, let's use the power function
+
+``````````````````````````````````````````````````````
+d = pow(0.01 / d, 2.0);
+
+``````````````````````````````````````````````````````
+
+This works because from 0 to 1, it essentially essentuates the darker colors; has a "dip" like appearance when graphed
+-- Changing it from 2.0 to something like 1.2 can make the effect not as harsh and have a nice balanced contrast
+
+``````````````````````````````````````````````````````
+d = pow(0.01 / d, 1.2);
+
+``````````````````````````````````````````````````````
+
